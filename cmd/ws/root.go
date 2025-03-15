@@ -46,10 +46,9 @@ Environment Variables:
 		logger := log.InitLogger(debug)
 		workspaceDir := cfg.GetWorkspacePath()
 
-		filename := ""
-		if len(args) > 0 {
-			filename = fmt.Sprintf("%s.code-workspace", args[0])
-			logger.Debug().Str("filename", filename).Msg("Set the target workspace matching the file")
+		userKeyword := ""
+		if len(args) > 0 && args[0] != "" {
+			userKeyword = args[0]
 		}
 
 		if err := ensureWorkspaceDir(workspaceDir); err != nil {
@@ -64,7 +63,7 @@ Environment Variables:
 		logger.Debug().Str("envVar", "VSCODE_WS_PATH").Msg("Using the default workspace directory as the environment variable was not found")
 		logger.Debug().Str("workspacePath", workspaceDir).Msg("")
 
-		workspace, err := form.ChooseWorkspace(filename, workspaceDir)
+		workspace, err := form.ChooseWorkspace(userKeyword, workspaceDir)
 		if err != nil && err != huh.ErrUserAborted {
 			logger.Error().Msg(err.Error())
 			os.Exit(1)
