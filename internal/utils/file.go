@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"io/fs"
 	"os"
 	"os/user"
@@ -10,22 +11,31 @@ import (
 	"github.com/phe-lab/ws/internal/exception"
 )
 
-func FindWorkspaceFiles(directory string, basename string) ([]string, error) {
+func FindWorkspaceFiles(directory string, search string) ([]string, error) {
 	var workspaces []string
+	var fullMatches []string
 
+	filename := fmt.Sprintf("%s.code-workspace", search)
 	err := filepath.WalkDir(directory, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
 
 		if !d.IsDir() && filepath.Ext(path) == ".code-workspace" {
-			if basename == "" || (basename != "" && filepath.Base(path) == basename) {
+			if search == "" || filepath.Base(path) == filename || ContainsIgnoreCase(path, search) {
 				workspaces = append(workspaces, path)
+				if search != "" && filepath.Base(path) == filename {
+					fullMatches = append(fullMatches, path)
+				}
 			}
 		}
 
 		return nil
 	})
+
+	if len(fullMatches) == 1 {
+		return fullMatches, nil
+	}
 
 	return workspaces, err
 }
@@ -75,4 +85,8 @@ func NormalizePath(path string) (string, error) {
 	path = os.ExpandEnv(path)
 
 	return filepath.Abs(filepath.Clean(path))
+}
+
+func ContainsIgnoreCase(s, substr string) bool {
+	return strings.Contains(strings.ToLower(s), strings.ToLower(substr))
 }

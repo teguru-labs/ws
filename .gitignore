@@ -2,3 +2,4 @@
 dist/
 vscode-workspace-cli
 ws
+__debug_*
